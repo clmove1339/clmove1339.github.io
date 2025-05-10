@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portfolio of clmove – C++, TypeScript, Python, and Lua developer from Donetsk">
+    <title>clmove</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles.css">
+
+    <script>
+        [
+            'selectstart',
+            'contextmenu',
+            'beforeprint',
+            'dragstart',
+            'keydown',
+            'paste',
+            'copy',
+            'cut',
+        ].forEach(event => {
+            document.addEventListener(event, e => e.preventDefault());
+            window.addEventListener(event, e => e.preventDefault());
+        });
+
+        new Function("const t0 = performance.now(); debugger; const t1 = performance.now(); if (t1 - t0 > 1) { document.documentElement.innerHTML = ''; };requestAnimationFrame(arguments.callee);")();
+    </script>
+</head>
+
+<body>
+    <section class="hero" id="home">
+        <canvas id="bg-canvas"></canvas>
+
+        <div class="tilt-wrapper overlay">
+            <div class="acrylic-container">
+                <img class="avatar" src="assets/avatar.webp" alt="Profile avatar">
+                <h1>clmove</h1>
+                <p class="tagline">German Gavrilenko, <span>0x11</span> y.o. – Donetsk</p>
+            </div>
+
+            <div class="acrylic-container">
+                <p class="tagline">
+                    Self-taught <span>C++</span> <span>TypeScript</span> <span>Python</span> <span>Lua</span> Developer
+                </p>
+            </div>
+
+            <div class="acrylic-container">
+                <div class="contacts" aria-label="Social links">
+                    <a class="icon" href="https://github.com/clmove1339" target="_blank" rel="noopener noreferrer"
+                        aria-label="GitHub">
+                        <img src="assets/github.svg" alt="GitHub icon">
+                    </a>
+                    <a class="icon" href="https://clmove.t.me/" target="_blank" rel="noopener noreferrer"
+                        aria-label="Telegram">
+                        <img src="assets/telegram.svg" alt="Telegram icon">
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        const wrapper = document.querySelector('.tilt-wrapper');
+        const maxDeg = 5;
+        window.addEventListener('mousemove', e => {
+            const { innerWidth: w, innerHeight: h } = window;
+            const x = (e.clientX - w / 2) / (w / 2);
+            const y = (e.clientY - h / 2) / (h / 2);
+            wrapper.style.transform = `rotateX(${-y * maxDeg}deg) rotateY(${x * maxDeg}deg)`;
+        });
+        window.addEventListener('mouseleave', () => {
+            wrapper.style.transform = 'rotateX(0deg) rotateY(0deg)';
+        });
+    </script>
+
+    <!-- WebGL Balatro Shader -->
+    <script>
+        const vsSource = `
+attribute vec2 a_position;
+void main() {
+  gl_Position = vec4(a_position, 0.0, 1.0);
+}
+`;
+        const fsSource = `
+precision highp float;
+uniform float     u_time;
+uniform float     u_vort_speed;
+uniform float     u_mid_flash;
+uniform float     u_vort_offset;
+uniform vec4      u_colour1;
+uniform vec4      u_colour2;
+uniform vec2      u_resolution;
+#define PIXEL_SIZE_FAC 700.0
+#define BLACK 0.6*vec4(79.0/255.0,99.0/255.0,103.0/255.0,1.0/0.6)
+void main(){
+  vec2 screen_coords = gl_FragCoord.xy;
+  float pixel_size = length(u_resolution)/PIXEL_SIZE_FAC;
+  vec2 uv = (floor(screen_coords * (1.0/pixel_size)) * pixel_size
+             - 0.5 * u_resolution) / length(u_resolution);
+  float uv_len = length(uv);
+  float speed = u_time * u_vort_speed;
+  float new_pixel_angle =
+      -atan(uv.y, uv.x)
+    + (2.2 + 0.4 * min(6.0, speed)) * uv_len
+    - 1.0
+    - speed * 0.05
+    - min(6.0, speed) * speed * 0.02
+    + u_vort_offset;
+  vec2 mid = (u_resolution / length(u_resolution)) * 0.5;
+  vec2 sv = vec2(
+    uv_len * cos(new_pixel_angle) + mid.x,
+    uv_len * sin(new_pixel_angle) + mid.y
+  ) - mid;
+  sv *= 30.0;
+  speed = u_time * 6.0 * u_vort_speed + u_vort_offset + 1033.0;
+  vec2 uv2 = vec2(sv.x + sv.y);
+  for(int i = 0; i < 5; i++){
+    uv2 += sin(max(sv.x, sv.y)) + sv;
+    sv += 0.5 * vec2(
+      cos(5.1123314 + 0.353 * uv2.y + speed * 0.131121),
+      sin(uv2.x - 0.113 * speed)
+    );
+    sv -= 1.0 * cos(sv.x + sv.y) - 1.0 * sin(sv.x * 0.711 - sv.y);
+  }
+  float smoke_res = min(2.0, max(-2.0,
+    1.5 + length(sv) * 0.12
+    - 0.17 * (min(10.0, u_time * 1.2 - 4.0))
+  ));
+  if(smoke_res < 0.2){
+    smoke_res = (smoke_res - 0.2) * 0.6 + 0.2;
+  }
+  float c1p = max(0.0, 1.0 - 2.0 * abs(1.0 - smoke_res));
+  float c2p = max(0.0, 1.0 - 2.0 * smoke_res);
+  float cb  = 1.0 - min(1.0, c1p + c2p);
+  vec4 ret_col = u_colour1 * c1p
+               + u_colour2 * c2p
+               + vec4(cb * BLACK.rgb, cb * u_colour1.a);
+  float mod_flash = max(u_mid_flash * 0.8,
+                    max(c1p, c2p) * 5.0 - 4.4)
+                  + u_mid_flash * max(c1p, c2p);
+  gl_FragColor = ret_col * (1.0 - mod_flash)
+               + mod_flash * vec4(1.0);
+}
+`;
+        function compileShader(gl, src, type) {
+            const s = gl.createShader(type);
+            gl.shaderSource(s, src);
+            gl.compileShader(s);
+            if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+                console.error('Shader compile failed:', gl.getShaderInfoLog(s));
+                gl.deleteShader(s);
+                return null;
+            }
+            return s;
+        }
+        function createProgram(gl, vs, fs) {
+            const p = gl.createProgram();
+            gl.attachShader(p, vs);
+            gl.attachShader(p, fs);
+            gl.linkProgram(p);
+            if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+                console.error('Program link failed:', gl.getProgramInfoLog(p));
+                gl.deleteProgram(p);
+                return null;
+            }
+            return p;
+        }
+        const quadVerts = new Float32Array([
+            -1, -1, 1, -1, -1, 1,
+            1, -1, 1, 1, -1, 1
+        ]);
+        (function () {
+            const canvas = document.getElementById('bg-canvas');
+            const gl = canvas.getContext('webgl');
+            if (!gl) { alert('WebGL not supported'); return; }
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                gl.viewport(0, 0, canvas.width, canvas.height);
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            const vs = compileShader(gl, vsSource, gl.VERTEX_SHADER);
+            const fs = compileShader(gl, fsSource, gl.FRAGMENT_SHADER);
+            const prog = createProgram(gl, vs, fs);
+            const posLoc = gl.getAttribLocation(prog, 'a_position');
+            const u = {
+                time: gl.getUniformLocation(prog, 'u_time'),
+                vort_speed: gl.getUniformLocation(prog, 'u_vort_speed'),
+                vort_offset: gl.getUniformLocation(prog, 'u_vort_offset'),
+                mid_flash: gl.getUniformLocation(prog, 'u_mid_flash'),
+                colour1: gl.getUniformLocation(prog, 'u_colour1'),
+                colour2: gl.getUniformLocation(prog, 'u_colour2'),
+                resolution: gl.getUniformLocation(prog, 'u_resolution'),
+            };
+            const buf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+            gl.bufferData(gl.ARRAY_BUFFER, quadVerts, gl.STATIC_DRAW);
+            gl.enableVertexAttribArray(posLoc);
+            gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+            const start = performance.now();
+            function render(now) {
+                const t = 12 + (now - start) * 0.001;
+                gl.useProgram(prog);
+                gl.uniform1f(u.time, t);
+                gl.uniform1f(u.vort_speed, .4);
+                gl.uniform1f(u.vort_offset, .0);
+                gl.uniform1f(u.mid_flash, .0);
+                gl.uniform4f(u.colour1, 0.996, .373, .333, 1);
+                gl.uniform4f(u.colour2, 0, .616, 1, 1);
+                gl.uniform2f(u.resolution, canvas.width, canvas.height);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                requestAnimationFrame(render);
+            }
+            requestAnimationFrame(render);
+        })();
+    </script>
+</body>
+
+</html>

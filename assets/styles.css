@@ -1,10 +1,11 @@
 :root {
-    --bg: #1110;
+    --bg: #000;
     --fg: #eee;
-    --primary: #1e90ff;
-    --acrylic-bg: rgba(0, 0, 0, 0.5);
-    --acrylic-blur-val: 10px;
+    --primary: #009dff;
+    --acrylic-bg: rgba(0, 0, 0, 0.6);
+    --acrylic-blur: 10px;
     --shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+    --radius: 1rem;
 }
 
 *,
@@ -13,28 +14,23 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
-
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none !important;
-}
-
-img {
-    -webkit-user-drag: none;
+    user-select: none;
 }
 
 html {
     scroll-behavior: smooth;
 }
 
-html,
 body {
-    height: 100%;
+    min-height: 100vh;
     background: var(--bg);
     color: var(--fg);
     font-family: 'Fira Code', monospace;
     overflow-x: hidden;
+}
+
+img {
+    display: block;
 }
 
 a {
@@ -49,72 +45,87 @@ a:focus {
 
 .hero {
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    display: grid;
+    place-items: center;
     perspective: 1000px;
     padding: 2rem 1rem;
 }
 
+#bg-canvas {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+}
+
 .tilt-wrapper {
-    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     transform-style: preserve-3d;
     transition: transform 0.1s ease-out;
     will-change: transform;
+    background: var(--acrylic-bg);
+    backdrop-filter: blur(var(--acrylic-blur));
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1rem 2rem;
 }
 
 .acrylic-container {
     background: var(--acrylic-bg);
-    border-radius: 1rem;
+    border-radius: var(--radius);
     padding: 2rem;
     margin: 1rem 0;
     width: 100%;
     box-shadow: var(--shadow);
     transition: transform 0.2s ease;
     backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    will-change: transform;
-    z-index: 1;
 }
 
 .acrylic-container:hover {
-    transform: scale(1.02);
+    transform: scale(1.025);
 }
 
 .avatar {
     width: 180px;
     height: 180px;
     border-radius: 50%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     margin: 0 auto 1rem;
     border: 2px solid var(--primary);
-    box-shadow: 0 0px 100px var(--primary);
-    display: block;
+    box-shadow: 0 0 100px var(--primary);
 }
 
 .hero h1 {
-    text-align: center;
     font-size: 3rem;
     letter-spacing: 0.1em;
     text-transform: lowercase;
+    text-align: center;
     margin-bottom: 0.5rem;
 }
 
 .tagline {
-    text-align: center;
-    opacity: 0.7;
     font-size: 1rem;
+    opacity: 0.7;
+    text-align: center;
     margin: 0.5rem 0;
+}
+
+.tagline span {
+    background: rgba(0, 0, 0, 0.95);
+    color: var(--primary);
+    padding: 0.1em 0.3em;
+    border-radius: 0.3em;
+    text-shadow: 0 0 10px var(--primary);
+    white-space: nowrap;
 }
 
 .contacts,
 .stack-icons {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     gap: 1rem;
     flex-wrap: wrap;
 }
@@ -122,15 +133,12 @@ a:focus {
 .contacts .icon,
 .stack-icons .icon {
     width: 48px;
-    height: 48px;
-    display: inline-block;
 }
 
 .contacts .icon img,
 .stack-icons .icon img {
     width: 100%;
     height: 100%;
-    display: block;
     filter: brightness(0) invert(1);
     transition: transform 0.2s ease, filter 0.2s ease;
 }
@@ -139,29 +147,6 @@ a:focus {
 .stack-icons .icon:hover img {
     transform: scale(1.1);
     filter: brightness(0) invert(1) drop-shadow(0 0 4px var(--primary));
-}
-
-.stack-title {
-    text-align: center;
-    font-size: 1.25rem;
-    margin-bottom: 1rem;
-    color: var(--primary);
-}
-
-.about {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    text-align: justify;
-}
-
-.tagline span {
-    background-color: rgba(0, 0, 0, 0.5);
-    color: var(--primary);
-    font-family: 'Fira Code', monospace;
-    padding: 0.1em 0.3em;
-    border-radius: 0.3em;
-    text-shadow: 0 0px 10px var(--primary);
-    white-space: nowrap;
 }
 
 @media (max-width: 600px) {
@@ -173,25 +158,4 @@ a:focus {
     .stack-icons {
         gap: 0.5rem;
     }
-}
-
-#bg-canvas {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: -1999;
-    display: block;
-}
-
-.overlay {
-    padding: 1rem 2rem;
-    background: var(--acrylic-bg);
-    backdrop-filter: blur(var(--acrylic-blur-val));
-    -webkit-backdrop-filter: blur(var(--acrylic-blur-val));
-    border-radius: 16px;
-    box-shadow: 0 0px 30px rgba(0, 0, 0, 0.5);
-    color: #ffffff;
-    z-index: 1;
 }
